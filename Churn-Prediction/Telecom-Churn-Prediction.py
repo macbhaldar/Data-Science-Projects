@@ -175,3 +175,154 @@ data[aug_call_usage_cols] = data[aug_call_usage_cols].fillna(0)
 df = data.isnull().sum().reset_index(name='missing_cnt')
 df.loc[df['missing_cnt']>0].sort_values('missing_cnt', ascending=False)
 
+# Exploratory Data Analysis
+## Churn (Target Variable)
+sns.countplot(x='churn', data=data)
+
+## Age on Network (aon)
+fig, (ax1, ax2) = plt.subplots(1,2,figsize=(20, 6))
+
+# distribution plot for aon
+sns.distplot(data['aon'], ax=ax1)
+
+# bin the aon column with yearwise segments and plot the counts for each segments
+bins = [0, 0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+labels = [0.5, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+pd.crosstab(pd.cut(round(((data['aon']/30)/12),1), bins = bins, labels = labels ), data['churn']).plot(kind='bar', stacked=True, ax = ax2)
+
+## Incoming Calls Usage
+cols = [['loc_ic_mou_6','std_ic_mou_6','isd_ic_mou_6','roam_ic_mou_6','spl_ic_mou_6','ic_others_6','total_ic_mou_6'],
+        ['loc_ic_mou_7','std_ic_mou_7','isd_ic_mou_7','roam_ic_mou_7','spl_ic_mou_7','ic_others_7','total_ic_mou_7'],
+        ['loc_ic_mou_8','std_ic_mou_8','isd_ic_mou_8','roam_ic_mou_8','spl_ic_mou_8','ic_others_8','total_ic_mou_8']]
+
+# column description stats
+for i in range(0,3):
+    display(data[cols[i]].describe())
+
+# plot for the incoming calls usage
+plt.figure(figsize=(18, 5))
+for i in range(0,3):
+    plt.subplot(1,3,i+1)
+    X = pd.concat([data[cols[i]], data['churn']], axis=1)
+    X = pd.melt(X,id_vars="churn",var_name="features",value_name='value')
+    sns.boxplot(x="features", y="value", hue="churn", data=X)
+    plt.xticks(rotation=90)    
+    plt.suptitle('Incoming Calls Usage')
+    
+## Outgoing Calls Usage
+cols = [['loc_og_mou_6','std_og_mou_6','isd_og_mou_6','roam_og_mou_6','spl_og_mou_6','og_others_6','total_og_mou_6'],
+        ['loc_og_mou_7','std_og_mou_7','isd_og_mou_7','roam_og_mou_7','spl_og_mou_7','og_others_7','total_og_mou_7'],
+        ['loc_og_mou_8','std_og_mou_8','isd_og_mou_8','roam_og_mou_8','spl_og_mou_8','og_others_8','total_og_mou_8']]
+
+# column description stats
+for i in range(0,3):
+    display(data[cols[i]].describe())
+
+# plot for the outgoing calls usage
+plt.figure(figsize=(18, 5))
+#ic call usage
+for i in range(0,3):
+    plt.subplot(1,3,i+1)
+    X = pd.concat([data[cols[i]], data['churn']], axis=1)
+    X = pd.melt(X,id_vars="churn",var_name="features",value_name='value')
+    sns.boxplot(x="features", y="value", hue="churn", data=X)
+    plt.xticks(rotation=90)    
+    plt.suptitle('Outgoing Calls Usage')
+    
+## Operatorwise Calls Usage
+cols = [['onnet_mou_6','offnet_mou_6','loc_ic_t2t_mou_6','loc_ic_t2m_mou_6','loc_ic_t2f_mou_6','std_ic_t2t_mou_6','std_ic_t2m_mou_6','std_ic_t2f_mou_6'],
+        ['loc_og_t2t_mou_6','loc_og_t2m_mou_6','loc_og_t2f_mou_6','loc_og_t2c_mou_6','std_og_t2t_mou_6','std_og_t2m_mou_6','std_og_t2f_mou_6'],
+        ['onnet_mou_7','offnet_mou_7','loc_ic_t2t_mou_7','loc_ic_t2m_mou_7','loc_ic_t2f_mou_7','std_ic_t2t_mou_7','std_ic_t2m_mou_7','std_ic_t2f_mou_7'],
+        ['loc_og_t2t_mou_7','loc_og_t2m_mou_7','loc_og_t2f_mou_7','loc_og_t2c_mou_7','std_og_t2t_mou_7','std_og_t2m_mou_7','std_og_t2f_mou_7'],
+        ['onnet_mou_8','offnet_mou_8','loc_ic_t2t_mou_8','loc_ic_t2m_mou_8','loc_ic_t2f_mou_8','std_ic_t2t_mou_8','std_ic_t2m_mou_8','std_ic_t2f_mou_8'],
+        ['loc_og_t2t_mou_8','loc_og_t2m_mou_8','loc_og_t2f_mou_8','loc_og_t2c_mou_8','std_og_t2t_mou_8','std_og_t2m_mou_8','std_og_t2f_mou_8']]
+
+# column description stats
+for i in range(0,6):
+    display(data[cols[i]].describe())
+
+# plot for the operatorwise calls usage
+plt.figure(figsize=(18, 18))
+plt.subplots_adjust(hspace=0.5)
+for i in range(0,6):
+    plt.subplot(3,2,i+1)
+    X = pd.concat([data[cols[i]], data['churn']], axis=1)
+    X = pd.melt(X,id_vars="churn",var_name="features",value_name='value')
+    sns.boxplot(x="features", y="value", hue="churn", data=X)
+    plt.xticks(rotation=90)    
+    plt.suptitle('Operatorwise Calls Usage')
+    
+## Recharge Amount
+# Let's derive total recharge amount for voice with the diff recharge amount of total and data
+data['total_rech_amt_voice_6'] = np.where((data['total_rech_amt_6'] >= data['total_rech_amt_data_6']), (data['total_rech_amt_6'] - data['total_rech_amt_data_6']), 0)
+data['total_rech_amt_voice_7'] = np.where((data['total_rech_amt_7'] >= data['total_rech_amt_data_7']), (data['total_rech_amt_7'] - data['total_rech_amt_data_7']), 0)
+data['total_rech_amt_voice_8'] = np.where((data['total_rech_amt_8'] >= data['total_rech_amt_data_8']), (data['total_rech_amt_8'] - data['total_rech_amt_data_8']), 0)
+
+cols = [
+        ['total_rech_amt_6','total_rech_amt_7','total_rech_amt_8'],
+        ['total_rech_amt_voice_6','total_rech_amt_voice_7','total_rech_amt_voice_8'],
+        ['total_rech_amt_data_6','total_rech_amt_data_7','total_rech_amt_data_8'],
+        ['max_rech_amt_6','max_rech_amt_7','max_rech_amt_8']
+       ]
+
+# column description stats
+for i in range(0,4):
+    display(data[cols[i]].describe())
+
+# plot for the recharge amount columns
+plt.figure(figsize=(18, 10))
+plt.subplots_adjust(hspace=0.5)
+for i in range(0,4):
+    plt.subplot(2,2,i+1)
+    X = pd.concat([data[cols[i]], data['churn']], axis=1)
+    X = pd.melt(X,id_vars="churn",var_name="features",value_name='value')
+    sns.boxplot(x="features", y="value", hue="churn", data=X)
+    plt.xticks(rotation=90)    
+    plt.suptitle('Recharge Amount')
+    
+## Recharge Count
+cols = [
+        ['total_rech_num_6','total_rech_num_7','total_rech_num_8'],
+        ['total_rech_data_6','total_rech_data_7','total_rech_data_8'],
+        ['max_rech_data_6','max_rech_data_7','max_rech_data_8'],
+        ['count_rech_2g_6','count_rech_2g_7','count_rech_2g_8'],
+        ['count_rech_3g_6','count_rech_3g_7','count_rech_3g_8'] 
+       ]
+
+# column description stats
+for i in range(0,5):
+    display(data[cols[i]].describe())
+
+# plot for the recharge count columns
+plt.figure(figsize=(18, 10))
+plt.subplots_adjust(hspace=0.5)
+for i in range(0,5):
+    plt.subplot(2,3,i+1)
+    X = pd.concat([data[cols[i]], data['churn']], axis=1)
+    X = pd.melt(X,id_vars="churn",var_name="features",value_name='value')
+    sns.boxplot(x="features", y="value", hue="churn", data=X)
+    plt.xticks(rotation=90)    
+    plt.suptitle('Recharge Count')
+    
+## Average Revenue per User (Arpu)
+cols = [
+        ['arpu_6','arpu_7','arpu_8'],
+        ['arpu_2g_6','arpu_2g_7','arpu_2g_8'],
+        ['arpu_3g_6','arpu_3g_7','arpu_3g_8']
+       ]
+
+# column description stats
+for i in range(0,3):
+    display(data[cols[i]].describe())
+
+# plot for the arpu
+plt.figure(figsize=(18, 5))
+for i in range(0,3):
+    plt.subplot(1,3,i+1)
+    X = pd.concat([data[cols[i]], data['churn']], axis=1)
+    X = pd.melt(X,id_vars="churn",var_name="features",value_name='value')
+    sns.boxplot(x="features", y="value", hue="churn", data=X)
+    plt.xticks(rotation=90)    
+    plt.suptitle('Arpu')
+    
+    
